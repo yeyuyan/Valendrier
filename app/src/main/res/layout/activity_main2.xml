@@ -23,12 +23,13 @@
     <com.example.yuyan.myapplication.PullScrollView
 
         android:id="@+id/test"
-        android:layout_width="416dp"
+        android:layout_width="wrap_content"
         android:layout_height="0dp"
-        app:layout_constraintHorizontal_bias="0.5"
+        android:layout_marginBottom="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonDate"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="0dp">
 
         <RelativeLayout
             android:id="@+id/refresh"
@@ -38,37 +39,37 @@
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="80dp"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
-
-                android:background="@android:color/holo_blue_light"
                 android:gravity="center"
                 android:text="@string/refresh"
-                android:textSize="30sp" />
+                android:textSize="10sp" />
         </RelativeLayout>
 
         <ScrollView
 
             android:id="@+id/scrollview"
-            android:layout_width="match_parent"
+            android:layout_width="360dp"
             android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="13dp"
+            android:clipToPadding="false"
             android:fillViewport="true"
-            android:padding="10dp"
             android:scrollbars="none"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toBottomOf="@id/refresh">
 
             <LinearLayout
                 android:id="@+id/layout"
-                android:layout_width="340dp"
-                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:longClickable="true"
-                android:orientation="vertical"
-                app:layout_constraintVertical_bias="0.0">
+                android:orientation="vertical">
 
             </LinearLayout>
+
+
         </ScrollView>
     </com.example.yuyan.myapplication.PullScrollView>
 

@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
@@ -51,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.TimeZone;
 
 
 
@@ -79,6 +81,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
     int gridHeight;
     int gridWidth;
     private TextView textView;
+    TimeZone tz;
+    int offsetTime;
 
 
     public Handler getHandler() {
@@ -95,6 +99,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         month=cal.get(Calendar.MONTH)+1;
         day=cal.get(Calendar.DAY_OF_MONTH);
         Date d1 = new Date(year-1900,month-1,day);
+        tz=cal.getTimeZone();
+        offsetTime=tz.getOffset(System.currentTimeMillis())/(3600*1000);
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
         String week = sdf.format(d1);
         mGestureDetector = new GestureDetector(new simpleGestureListener());
@@ -120,7 +126,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
             @Override
             public void onDateSet(DatePicker view, int year1, int month1, int day1) {
-
+                char color_='w';
                 Handler mainHandler=Main2Activity.this.getHandler();
                 year=year1;
                 month=month1+1;
@@ -137,6 +143,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                String summary;
                 layout.removeAllViews();
                 int start,end,hour,minute=0;
                 for(Map i:events){
@@ -147,21 +154,49 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                     txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
                     hour=end/100;
                     minute=end%100;
+                    summary=i.get("summary")+"\n";
                     txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-                    text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
+                    text=txtStart +"-"+txtEnd+"\n"+summary+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
                     text=text.substring(0,text.length()-2);
+                    if (summary.contains("CM")) color_='p';
+                    if (summary.contains("TD")) color_='b';
+                    if (summary.contains("TP")) color_='g';
+                    if (summary.contains("RES")) color_='G';
 
-                    addView(count,text);
+
+                    addView(count,text,color_);
                     count++;
                 }
+                addView(count,"",'w');
+                //layout.addView(tve);
 
             }
         }, year, month-1, day).show();/*设置按钮打开的日历*/
     }
-    private void addView(int start,String text){
+    private void addView(int start,String text,char color_){
         TextView tv;
         tv= createTv(start,text);
-        tv.setBackgroundColor(Color.argb(100,10*start,(start+3)*10,(start+6)*18));
+        switch (color_) {
+            case 'w':
+                tv.setBackgroundColor(Color.argb(100,255,255,255));
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,160);
+                tv.setLayoutParams(params);
+                break;
+            case 'g':
+                tv.setBackgroundColor(Color.argb(100,150+3*start,230+(start) * 2,70+(start + 6)*2));
+                break;
+            case 'b':
+                tv.setBackgroundColor(Color.argb(100,150+3*start,200+(start + 3) * 2,240+start*2));
+                break;
+            case 'p':
+                tv.setBackgroundColor(Color.argb(100,200+3*start,200+(start) * 3,255));
+                break;
+            case 'G':
+                tv.setBackgroundColor(Color.argb(100,200,200,200));
+                break;
+                //Color.argb(100, 10 * start, (start + 3) * 10, (start + 6) * 18));
+
+        }
         layout.addView(tv);
     }
     /*
@@ -194,7 +229,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
     public void changeView(){
         layout.removeAllViews();
-
+        char color_='w';
         Date d1 = new Date(year-1900,month-1,day);
         SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
         SimpleDateFormat sdfD = new SimpleDateFormat("dd");
@@ -218,7 +253,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        String summary;
         int start,end,hour,minute=0;
         for(Map i:events){
             start=Integer.parseInt((String)i.get("start"))+200;
@@ -228,13 +263,20 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
             hour=end/100;
             minute=end%100;
+            summary=i.get("summary")+"\n";
             txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-            text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
+            text=txtStart +"-"+txtEnd+"\n"+summary+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
             text=text.substring(0,text.length()-2);
+            if (summary.contains("CM")) color_='p';
+            if (summary.contains("TD")) color_='b';
+            if (summary.contains("TP")) color_='g';
+            if (summary.contains("RES")) color_='G';
 
-            addView(count1,text);
+
+            addView(count1,text,color_);
             count1++;
         }
+        addView(count1,"",'w');
     }
 
     @Override
@@ -496,14 +538,14 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                 //Log.i("MyGesture", "Fling left");
                 day+=1;
                 changeView();
-                Toast.makeText(Main2Activity.this, "Fling Left", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(Main2Activity.this, "Fling Left", Toast.LENGTH_SHORT).show();
             } else if (e2.getRawX() - e1.getRawX() > FLING_MIN_DISTANCE_X
                     && Math.abs(velocityX) > FLING_MIN_VELOCITY_X && Math.abs(e2.getRawY()-e1.getRawY())<FLING_MAX_DISTANCE_Y) {
                 // Fling right
                 ///Log.i("MyGesture", "Fling right");
                 day-=1;
                 changeView();
-                Toast.makeText(Main2Activity.this, "Fling Right", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(Main2Activity.this, "Fling Right", Toast.LENGTH_SHORT).show();
             }
             return true;
         }
