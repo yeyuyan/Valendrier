@@ -3,4 +3,5 @@
     <string name="username_enter">Idendifiant:</string>
     <string name="login">Login</string>
     <string name="password_enter">Mot de passe:</string>
+    <string name="calendar">Calendrier:</string>
 </resources>

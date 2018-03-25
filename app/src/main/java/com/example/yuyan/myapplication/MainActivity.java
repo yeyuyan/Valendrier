@@ -14,14 +14,13 @@ import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
 
-    private EditText editText = findViewById(R.id.editText);
-    private EditText editText2 = findViewById(R.id.editText2);
-    private Button button=findViewById(R.id.button);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Button button=findViewById(R.id.button);
         button.setOnClickListener(this);
     }
 
@@ -36,18 +35,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         String username,password;
 
         AlertDialog.Builder builder = new Builder(this);
+        EditText editText = findViewById(R.id.editText);
+        EditText editText2 = findViewById(R.id.editText2);
         username = editText.getText().toString();
         password = editText2.getText().toString();
 
         int loginRight;
         loginRight=isSuccessful(username,password);
 
-/*        if (loginRight==1) {
-            Intent intent= new Intent(this, ActivityPageCal.class);
+        if (loginRight==1) {
+            Intent intent= new Intent(this, Main2Activity.class);
             startActivity(intent);
         }
-*/
-        /*else*/ if (loginRight == 0) {
+
+        if (loginRight == 0) {
             builder.setTitle("error password");
             builder.setMessage("Yours password is wrong, please enter again.");
             builder.setPositiveButton("OK", null);
