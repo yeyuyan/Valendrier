@@ -17,6 +17,9 @@ import android.graphics.Color;
 import android.content.Context;
 import android.view.Menu;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.view.Gravity;
 
 import java.util.Calendar;
 
@@ -30,6 +33,9 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
     private int month;
     private int day;
 
+    private int gridHeight,gridWidth;
+    private RelativeLayout layout;
+    private static boolean isFirst = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,16 +45,17 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         year=cal.get(Calendar.YEAR);
         month=cal.get(Calendar.MONTH)+1;
         day=cal.get(Calendar.DAY_OF_MONTH);
-        myView view=new myView(this);
+        /*myView view=new myView(this);*/
 
         setTitle(year+"-"+month+"-"+day);
 
 
         buttonDate=findViewById(R.id.buttonDate);
         buttonDate.setOnClickListener(this);
-        LinearLayout linearLayout=new LinearLayout(this);
+        layout=findViewById(R.id.layout);
+        /*LinearLayout linearLayout=new LinearLayout(this);
         linearLayout=findViewById(R.id.a10001);
-        linearLayout.addView(view);
+        linearLayout.addView(view);*/
     }
 
     @Override
@@ -57,11 +64,47 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         new DatePickerDialog(this, new OnDateSetListener() {
 
             @Override
-            public void onDateSet(DatePicker view, int year, int month, int day) {
+            public void onDateSet(DatePicker view, int year1, int month1, int day1) {
 
-                setTitle(year+"-"+month+"-"+day);
+                setTitle(year1+"-"+(month1+1)+"-"+day1);
+                year=year1;
+                month=month1+1;
+                day=day1;
+                String text="programmation";
+                layout.removeAllViews();
+                addView(1,2,text);
+                addView(2,3,text);
+
             }
-        }, year, cal.get(Calendar.MONTH), day).show();
+        }, year, month-1, day).show();/*设置按钮打开的日历*/
+    }
+    private void addView(int start,int end,String text){
+        TextView tv;
+        tv= createTv(start,end,text);
+        tv.setBackgroundColor(Color.argb(100,start*5,(start+end)*20,0));
+        layout.addView(tv);
+    }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(isFirst) {
+            isFirst = false;
+            gridWidth = layout.getWidth();
+            gridHeight = layout.getHeight()/6;
+        }
+    }
+    private TextView createTv (int start, int end, String text){
+        TextView tv =new TextView(this);
+        /*指定高度和宽度*/
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight*(end-start));
+        /*指定位置*/
+        tv.setY(gridHeight*(start-1));
+        tv.setLayoutParams(params);
+        tv.setGravity(Gravity.CENTER);
+        tv.setText(text);
+        return tv;
     }
 
     @Override
@@ -70,7 +113,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
+/*
     class myView extends View {
         Paint mPaint = new Paint();
         public myView(Context context) {
@@ -104,6 +147,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                         (float) width, (float) (i * sectionHeight), mPaint);
             }
         }
-    }
+    }*/
+
+
 
 }
