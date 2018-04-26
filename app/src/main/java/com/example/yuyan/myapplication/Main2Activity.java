@@ -21,7 +21,17 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.view.Gravity;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Calendar;
+import java.io.FileInputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class Main2Activity extends AppCompatActivity implements OnClickListener{
@@ -70,10 +80,19 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                 year=year1;
                 month=month1+1;
                 day=day1;
-                String text="programmation";
+                Event[] events=new Event[1];
+                String text;
+                int count=0;
+                try {
+                    events=readFileOnLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 layout.removeAllViews();
-                addView(1,2,text);
-                addView(2,3,text);
+                for(Event i:events){
+                    text=i.start+"-"+i.end+"\n"+i.summary+"\n"+i.location+"\n"+i.prof;
+                    addView(count+1,count+2,text);
+                }
 
             }
         }, year, month-1, day).show();/*设置按钮打开的日历*/
@@ -95,10 +114,11 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
             gridHeight = layout.getHeight()/6;
         }
     }
+
     private TextView createTv (int start, int end, String text){
         TextView tv =new TextView(this);
         /*指定高度和宽度*/
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight*(end-start));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight*30);
         /*指定位置*/
         tv.setY(gridHeight*(start-1));
         tv.setLayoutParams(params);
@@ -113,6 +133,102 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
+/*
+    public String readFile(String fileName) throws IOException {
+        String res="";
+        try{
+            FileInputStream fin;
+            fin = openFileInput(fileName);
+            int length = fin.available();
+            byte [] buffer = new byte[length];
+            fin.read(buffer);
+            res = new String (buffer, "UTF-8");
+            fin.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }*/
+    private class Event{
+        public String start;
+        public String end;
+        public String summary;
+        public String location;
+        public String prof;
+
+
+}
+    Event[] readFileOnLine() throws IOException {
+        String strFileName = "Timetable.ics";
+        File fis = new File(strFileName);
+        BufferedReader sBuffer = new BufferedReader(new FileReader(fis));
+        String strLine = null;
+        int size=0;
+        int len=0;
+        while((strLine =  sBuffer.readLine()) != null) {
+            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.valueOf(this.month)+String.valueOf(this.day));
+            if (size>-1) len++;
+        }
+
+        Event[] rslt=new Event[len];
+        int i=0;
+        boolean bool=false;
+        while((strLine =  sBuffer.readLine()) != null) {
+            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.valueOf(this.month)+String.valueOf(this.day));
+            if (size>-1) {
+                String reg = "t(.*?)00z";
+                Pattern p = Pattern.compile(reg);
+                Matcher m = p.matcher(strLine);
+                rslt[i].start = m.group(1);
+                bool = true;
+                i++;
+                continue;
+            }
+            size = strLine.indexOf("DTEND:");
+            if (size>-1 && bool){
+                String reg="t(.*?)00z";
+                Pattern p = Pattern.compile(reg);
+                Matcher m = p.matcher(strLine);
+                rslt[i].end=m.group(1);
+                continue;
+            }
+            size = strLine.indexOf("SUMMARY:");
+            if (size>-1 && bool){
+                String reg="SUMMARY:(.*?)";
+                Pattern p = Pattern.compile(reg);
+                Matcher m = p.matcher(strLine);
+                rslt[i].summary=m.group(1);
+            }
+            size = strLine.indexOf("LOCATION:");
+            if (size>-1 && bool){
+                String reg="LOCATION:(.*?)";
+                Pattern p = Pattern.compile(reg);
+                Matcher m = p.matcher(strLine);
+                rslt[i].location=m.group(1);
+            }
+
+            size = strLine.indexOf("Prof :");
+            if (size>-1 && bool) {
+                String reg = "Prof :(.*?)\ngroupe";
+                Pattern p = Pattern.compile(reg);
+                Matcher m = p.matcher(strLine);
+                rslt[i].prof = m.group(1);
+            }
+
+            size = strLine.indexOf("END:VEVENT");
+            if (size>-1 && bool) {
+                bool=false;
+            }
+
+        }
+        sBuffer.close();
+        return(rslt);
+    }
+
+
+
 /*
     class myView extends View {
         Paint mPaint = new Paint();
