@@ -1,6 +1,7 @@
 package com.example.yuyan.myapplication;
 
 import android.content.Context;
+import android.os.Handler;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -34,8 +36,9 @@ import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
-
     private int isSuccessful=-1;
+    private Handler handler=new Handler();
+    Button button=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,13 +51,16 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         //    StrictMode.setThreadPolicy(policy);
         //}
 
-        Button button=findViewById(R.id.button);
+        Button butt=findViewById(R.id.button);
+        button=butt;
         button.setOnClickListener(this);
 
 
     }
 
-
+    public Handler getHandler() {
+        return handler;
+    }
 
     //int isSuccessful(String username, String password) {
       //  if (username.equals("yyy") && password.equals("yyy"))
@@ -65,18 +71,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         this.isSuccessful=param;
     }
     public void onClick(View v ){
-
-
-        AlertDialog.Builder builder = new Builder(this);
-
-
-
+        button.setEnabled(false);
         new Thread(new Runnable() {
             private int successful=1;
             private String adress1="https://cas.univ-valenciennes.fr/cas/login?service=https://portail.univ-valenciennes.fr/Login";
             private String adress2="https://vtmob.univ-valenciennes.fr/esup-vtclient-up4/stylesheets/desktop/welcome.xhtml";
 
-            public int sendPost(String adress,String postParams)  throws Exception {
+            public Map sendPostLogin(String adress, String postParams)  throws Exception {
                 URL url=new URL(adress);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
@@ -92,12 +93,33 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 wr.writeBytes(postParams);
                 wr.flush();
                 wr.close();
+                int responseCode = conn.getResponseCode();
+                Map m=new HashMap();
+                String cookieValue= conn.getHeaderField("set-cookie");
+                m.put("responseCode",responseCode);
+                m.put("cookie",cookieValue);
+                return m;
+            }
+
+            public int sendPostDownloading(String adress,String postParams,String cookie)  throws Exception {
+                URL url=new URL(adress);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setRequestProperty("Cookie",cookie);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64;+rv:59.0)+Gecko/20100101+Firefox/59.0");
+                conn.setRequestProperty("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+                conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+                wr.writeBytes(postParams);
+                wr.flush();
+                wr.close();
 
                 int responseCode = conn.getResponseCode();
-                //System.out.println("\nSending 'POST' request to URL : " + url);
-                //System.out.println("Post parameters : " + postParams);
-                //System.out.println("Response Code : " + responseCode);
-                //setCookies(conn.getHeaderFields().get("Set-Cookie"));
                 BufferedReader in =
                         new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String inputLine;
@@ -105,25 +127,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 while ((inputLine = in.readLine()) != null) {
                     response=response+"\n"+inputLine;
                 }
-                in.close();//�ر�������
-
-                //System.out.println(response);
-
-                //File f = new File("D:/KeChengBiao.ics");
-                //FileWriter writer=new FileWriter(f);
-                //writer.write(response);
-                //writer.close();
-
+                in.close();
                 writeFile("Timetable.ics",response);
                 return responseCode;
             }
 
-            public Map getFormParams(String adress, String username, String password) throws IOException {
+            public Map getFormParamsLogin(String adress, String username, String password) throws IOException {
                 URL url=new URL(adress);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
                 conn.setRequestProperty("User-Agent", "Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64;+rv:59.0)+Gecko/20100101+Firefox/59.0");
                 conn.setRequestProperty("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                 conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -132,10 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
                 conn.setDoOutput(true);
 
-
                 int responseCode = conn.getResponseCode();
-                //System.out.println(responseCode);
-
                 BufferedReader in =
                         new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String inputLine;
@@ -145,27 +156,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 }
                 in.close();
 
-                //System.out.println(response);
-
-                //File f = new File("D:/helloWeb.html");
-                //FileWriter writer=new FileWriter(f);
-                //writer.write(response);
-                //writer.close();
-
-
                 String reg = "name=\"lt\" value=\"(.*?)\" />";
                 Pattern p = Pattern.compile(reg);
                 Matcher m = p.matcher(response);
-                String ltToken="";
-                if(m.find()) {
+                String ltToken = "";
+                if (m.find()) {
                     ltToken = m.group(1);
                 }
 
                 reg = "name=\"execution\" value=\"(.*?)\" />";
                 p = Pattern.compile(reg);
                 m = p.matcher(response);
-                String executionToken="";
-                if(m.find()) {
+                String executionToken = "";
+                if (m.find()) {
                     executionToken = m.group(1);
                 }
                 //System.out.println(executionToken);
@@ -173,8 +176,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 reg = "name=\"_eventId\" value=\"(.*)\" />";
                 p = Pattern.compile(reg);
                 m = p.matcher(response);
-                String eventIdToken="";
-                if(m.find()) {
+                String eventIdToken = "";
+                if (m.find()) {
                     eventIdToken = m.group(1);
                 }
                 //System.out.println(eventIdToken);
@@ -182,18 +185,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 reg = "name=\"ipAddress\" value=\"(.*)\"/>";
                 p = Pattern.compile(reg);
                 m = p.matcher(response);
-                String ipAddressToken="";
-                if(m.find()) {
-                    ipAddressToken= m.group(1);
+                String ipAddressToken = "";
+                if (m.find()) {
+                    ipAddressToken = m.group(1);
                 }
                 //System.out.println(ipAddressToken);
 
                 reg = "name=\"userAgent\" value=\"(.*)\" />";
                 p = Pattern.compile(reg);
                 m = p.matcher(response);
-                String userAgentToken="";
-                if(m.find()) {
-                    userAgentToken= m.group(1);
+                String userAgentToken = "";
+                if (m.find()) {
+                    userAgentToken = m.group(1);
                 }
 
                 String params="_eventId="+eventIdToken
@@ -211,13 +214,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
                 return m1;
             }
-            public Map getFormParams2(String adress) throws IOException {
+            public Map getFormParamsDownloading(String adress,String cookie) throws IOException {
                 URL url=new URL(adress);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestProperty("Cookie",cookie);
                 conn.setRequestProperty("User-Agent", "Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64;+rv:59.0)+Gecko/20100101+Firefox/59.0");
                 conn.setRequestProperty("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
                 conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -226,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 conn.setDoInput(true);
                 conn.setDoOutput(true);
                 int responseCode = conn.getResponseCode();
-                System.out.println(responseCode);
+                //System.out.println(responseCode);
                 BufferedReader in =
                         new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 String inputLine;
@@ -235,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     response=response+"\n"+inputLine;
                 }
                 in.close();
-
+                if (response.contains("Besoin d'aide")) throw(new IOException());
                 String reg = "name=\"javax.faces.ViewState\" value=\"(.*?)\"";
                 Pattern p = Pattern.compile(reg);
                 Matcher m = p.matcher(response);
@@ -243,7 +246,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 if(m.find()) {
                     viewStateToken = m.group(1);
                 }
-                System.out.println(viewStateToken);
                 String params="_noJavaScript=false&j_id12:_idcl=j_id12:j_id15&javax.faces.ViewState="
                         +viewStateToken+
                         "&org.apache.myfaces.trinidad.faces.FORM=j_id12";
@@ -272,7 +274,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
             @Override
             public void run() {
+                Handler mainHandler=MainActivity.this.getHandler();
                 String username,password;
+                String sessionID=null;
                 EditText editText = findViewById(R.id.editText);
                 EditText editText2 = findViewById(R.id.editText2);
                 username = editText.getText().toString();
@@ -284,31 +288,45 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     e.printStackTrace();
                 }
 
-                Map m;
+                Map m=null;
                 String postParams = null;
+                String cookie=null;
                 PasswordHelp passwordSaver= new PasswordHelp();
                 passwordSaver.savePassword(ContextHolder.getContext(),username,password);
                 try {
-                    m = this.getFormParams(adress1,username,password);
+                    m = this.getFormParamsLogin(adress1,username,password);
                     postParams=(String)m.get("params");
                 } catch (IOException e) {}
                 try {
-                    this.sendPost(adress1,postParams);
+                    m=this.sendPostLogin(adress1,postParams);
+                    cookie=(String)m.get("cookie");
+                    if (cookie!=null) sessionID=cookie.substring(0,cookie.indexOf(";"));
                 } catch (Exception e) {}
 
-                //try {}
-                //catch (Exception ){}
-
                 try {
-                    m=this.getFormParams2(adress2);
+                    m=this.getFormParamsDownloading(adress2,cookie);
                     postParams=(String)m.get("params");
-                } catch (IOException e) {}
-                try {
+                }
 
-                    if (this.sendPost(adress2,postParams)==200)  this.successful=0;
+                catch (IOException e)
+                    {successful=1;}
+
+                try {
+                    if (this.sendPostDownloading(adress2,postParams,cookie)==200) this.successful=0;
                     else this.successful=1;
+
                 } catch (Exception e) {}
                 MainActivity.this.setIsSuccessful(successful);
+                mainHandler.post(new Runnable(){
+                    @Override
+                    public void run() {
+                        button.setEnabled(true);
+                        newPage();
+                    }
+                });
+
+
+
                 /*MainActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -320,8 +338,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
         }).start();
 
-        int loginRight=this.isSuccessful;
 
+
+
+        //else if (loginRight == 2) {
+          //  builder.setTitle("error connection");
+          //  builder.setMessage("Please check your internet connection.");
+          //  builder.setPositiveButton("OK", null);
+          //  builder.show();
+        //}
+
+    }
+    public void newPage(){
+        AlertDialog.Builder builder = new Builder(this);
+        int loginRight=this.isSuccessful;
         if (loginRight==0) {
             Intent intent= new Intent(this, Main2Activity.class);
             startActivity(intent);
@@ -333,15 +363,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             builder.setPositiveButton("OK", null);
             builder.show();
         }
-
-
-
-        //else if (loginRight == 2) {
-          //  builder.setTitle("error connection");
-          //  builder.setMessage("Please check your internet connection.");
-          //  builder.setPositiveButton("OK", null);
-          //  builder.show();
-        //}
 
     }
 
