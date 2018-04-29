@@ -19,6 +19,7 @@ import android.content.Context;
 import android.view.Menu;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.view.Gravity;
 
@@ -53,6 +54,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
 
     private int gridHeight,gridWidth;
     private RelativeLayout layout;
+    //private ScrollView scrollView;
     private static boolean isFirst = true;
 
     @Override
@@ -71,6 +73,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         buttonDate=findViewById(R.id.buttonDate);
         buttonDate.setOnClickListener(this);
         layout=findViewById(R.id.layout);
+        //scrollView=findViewById(R.id.scrollview);
         /*LinearLayout linearLayout=new LinearLayout(this);
         linearLayout=findViewById(R.id.a10001);
         linearLayout.addView(view);*/
@@ -131,7 +134,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         if(isFirst) {
             isFirst = false;
             gridWidth = layout.getWidth();
-            gridHeight = layout.getHeight()/4;
+            gridHeight = layout.getHeight()/3;
         }
     }
 
@@ -209,6 +212,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         String t="";
         String miao="";
         boolean profExists=false;
+        boolean locaExists=false;
         while((strLine =  sBuffer.readLine()) != null) {
             size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.format(Locale.ENGLISH,"%02d",this.month)+String.format(Locale.ENGLISH,"%02d",this.day));
             if (size>-1) {
@@ -240,7 +244,14 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                     rslt[i].put("summary",m.group(1));
             }
             size = strLine.indexOf("LOCATION:");
-            if (size>-1 && bool){
+            if (bool && locaExists && strLine.indexOf("DESCRIPTION:")==-1) {
+                t=t+strLine.substring(1,strLine.length());
+            }
+            if (size>-1 && bool && !locaExists) {
+                locaExists=true;
+                t=strLine.substring(0,strLine.length());
+            }
+            if (size>-1 && bool && strLine.indexOf("DESCRIPTION:")==-1){
                 String reg="LOCATION:(.*)";
                 p = Pattern.compile(reg);
                 m = p.matcher(strLine);
@@ -249,10 +260,18 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
             }
 
             size = strLine.indexOf("DESCRIPTION:");
-            if (bool && profExists) {
+            if (bool && profExists && strLine.indexOf("CATEGORIES:")==-1) {
+
                 t=t+strLine.substring(1,strLine.length());
             }
-            if (size>-1 && bool && !profExists) {
+            if (size>-1 && bool && !profExists && strLine.indexOf("CATEGORIES:")==-1) {
+                locaExists = false;
+                String reg="LOCATION:(.*)";
+                p = Pattern.compile(reg);
+                m = p.matcher(t);
+                if (m.find())
+                    rslt[i].put("location",m.group(1));
+                t="";
                 profExists=true;
                 t=strLine.substring(0,strLine.length());
             }

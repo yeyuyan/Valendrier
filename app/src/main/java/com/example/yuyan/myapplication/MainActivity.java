@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     response=response+"\n"+inputLine;
                 }
                 in.close();
-
+                if (response.contains("Besoin d'aide")) throw(new IOException());
                 writeFile("Timetable.ics",response);
                 return responseCode;
             }
@@ -333,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     if (this.sendPostDownloading(adress2,postParams,cookie)==200) this.successful=0;
                     else this.successful=1;
 
-                } catch (Exception e) {}
+                } catch (Exception e) {successful=1;}
                 MainActivity.this.setIsSuccessful(successful);
                 mainHandler.post(new Runnable(){
                     @Override
