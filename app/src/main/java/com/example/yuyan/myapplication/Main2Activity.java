@@ -1,5 +1,6 @@
 package com.example.yuyan.myapplication;
 
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -22,16 +23,23 @@ import android.widget.TextView;
 import android.view.Gravity;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.Calendar;
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 
 public class Main2Activity extends AppCompatActivity implements OnClickListener{
@@ -80,8 +88,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                 year=year1;
                 month=month1+1;
                 day=day1;
-                Event[] events=new Event[1];
-                String text;
+                Map[] events=null;
+                String text,txtStart,txtEnd;
                 int count=0;
                 try {
                     events=readFileOnLine();
@@ -89,18 +97,30 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                     e.printStackTrace();
                 }
                 layout.removeAllViews();
-                for(Event i:events){
-                    text=i.start+"-"+i.end+"\n"+i.summary+"\n"+i.location+"\n"+i.prof;
-                    addView(count+1,count+2,text);
+                int start,end,hour,minute=0;
+                for(Map i:events){
+                    start=Integer.parseInt((String)i.get("start"))+200;
+                    end=Integer.parseInt((String)i.get("end"))+200;
+                    hour=start/100;
+                    minute=start%100;
+                    txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+                    hour=end/100;
+                    minute=end%100;
+                    txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+                    text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+i.get("location")+"\n"+i.get("prof");
+                    text=text.substring(0,text.length()-2);
+
+                    addView(count+1,text);
+                    count++;
                 }
 
             }
         }, year, month-1, day).show();/*设置按钮打开的日历*/
     }
-    private void addView(int start,int end,String text){
+    private void addView(int start,String text){
         TextView tv;
-        tv= createTv(start,end,text);
-        tv.setBackgroundColor(Color.argb(100,start*5,(start+end)*20,0));
+        tv= createTv(start,text);
+        tv.setBackgroundColor(Color.argb(100,20,(start+4)*10,(start+4)*20));
         layout.addView(tv);
     }
 
@@ -111,19 +131,20 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         if(isFirst) {
             isFirst = false;
             gridWidth = layout.getWidth();
-            gridHeight = layout.getHeight()/6;
+            gridHeight = layout.getHeight()/4;
         }
     }
 
-    private TextView createTv (int start, int end, String text){
+    private TextView createTv (int start, String text){
         TextView tv =new TextView(this);
         /*指定高度和宽度*/
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight*30);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight);
         /*指定位置*/
         tv.setY(gridHeight*(start-1));
         tv.setLayoutParams(params);
         tv.setGravity(Gravity.CENTER);
         tv.setText(text);
+        tv.setTypeface(null, Typeface.BOLD);
         return tv;
     }
 
@@ -151,74 +172,106 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         }
         return res;
     }*/
-    private class Event{
-        public String start;
-        public String end;
-        public String summary;
-        public String location;
-        public String prof;
 
 
-}
-    Event[] readFileOnLine() throws IOException {
+
+    Map[] readFileOnLine() throws IOException {
+        String res=null;
         String strFileName = "Timetable.ics";
-        File fis = new File(strFileName);
-        BufferedReader sBuffer = new BufferedReader(new FileReader(fis));
+        //File fis = new File(strFileName);
+        //BufferedReader sBuffer = new BufferedReader(new FileReader(fis));
+        FileInputStream fin = openFileInput(strFileName);
+        int length = fin.available();
+        byte [] buffer = new byte[length];
+        fin.read(buffer);
+        res=new String(buffer, "UTF-8");
+        //res = EncodingUtils.getString(buffer, "UTF-8");
+        BufferedReader sBuffer=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+        fin.close();
+
         String strLine = null;
         int size=0;
         int len=0;
         while((strLine =  sBuffer.readLine()) != null) {
-            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.valueOf(this.month)+String.valueOf(this.day));
+            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.format(Locale.ENGLISH,"%02d",this.month)+String.format(Locale.ENGLISH,"%02d",this.day));
             if (size>-1) len++;
         }
 
-        Event[] rslt=new Event[len];
+        Map[] rslt=new HashMap[len];
+        for (int i=0;i<len;i++){
+            rslt[i]=new HashMap();
+        }
         int i=0;
         boolean bool=false;
+        sBuffer=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+        Pattern p;
+        Matcher m;
+        String t="";
+        String miao="";
+        boolean profExists=false;
         while((strLine =  sBuffer.readLine()) != null) {
-            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.valueOf(this.month)+String.valueOf(this.day));
+            size = strLine.indexOf("DTSTART:"+String.valueOf(this.year)+String.format(Locale.ENGLISH,"%02d",this.month)+String.format(Locale.ENGLISH,"%02d",this.day));
             if (size>-1) {
-                String reg = "t(.*?)00z";
-                Pattern p = Pattern.compile(reg);
-                Matcher m = p.matcher(strLine);
-                rslt[i].start = m.group(1);
+                String reg = "T(\\d*?)00Z";
+                p = Pattern.compile(reg);
+                m = p.matcher(strLine);
+                if (m.find()) {
+                    rslt[i].put("start", m.group(1));
+                }
                 bool = true;
-                i++;
                 continue;
             }
             size = strLine.indexOf("DTEND:");
             if (size>-1 && bool){
-                String reg="t(.*?)00z";
-                Pattern p = Pattern.compile(reg);
-                Matcher m = p.matcher(strLine);
-                rslt[i].end=m.group(1);
+                String reg="T(\\d*?)00Z";
+                p = Pattern.compile(reg);
+                m = p.matcher(strLine);
+                if (m.find()) {
+                    rslt[i].put("end",m.group(1));
+                }
                 continue;
             }
             size = strLine.indexOf("SUMMARY:");
             if (size>-1 && bool){
-                String reg="SUMMARY:(.*?)";
-                Pattern p = Pattern.compile(reg);
-                Matcher m = p.matcher(strLine);
-                rslt[i].summary=m.group(1);
+                String reg="SUMMARY:(.*) \\(";
+                p = Pattern.compile(reg);
+                m = p.matcher(strLine);
+                if (m.find())
+                    rslt[i].put("summary",m.group(1));
             }
             size = strLine.indexOf("LOCATION:");
             if (size>-1 && bool){
-                String reg="LOCATION:(.*?)";
-                Pattern p = Pattern.compile(reg);
-                Matcher m = p.matcher(strLine);
-                rslt[i].location=m.group(1);
+                String reg="LOCATION:(.*)";
+                p = Pattern.compile(reg);
+                m = p.matcher(strLine);
+                if (m.find())
+                    rslt[i].put("location",m.group(1));
             }
 
-            size = strLine.indexOf("Prof :");
+            size = strLine.indexOf("DESCRIPTION:");
+            if (bool && profExists) {
+                t=t+strLine.substring(1,strLine.length());
+            }
+            if (size>-1 && bool && !profExists) {
+                profExists=true;
+                t=strLine.substring(0,strLine.length());
+            }
+
+            size = strLine.indexOf("CATEGORIES:");
             if (size>-1 && bool) {
-                String reg = "Prof :(.*?)\ngroupe";
-                Pattern p = Pattern.compile(reg);
-                Matcher m = p.matcher(strLine);
-                rslt[i].prof = m.group(1);
+                profExists = false;
+                String reg = "Prof :(.*?)Groupe";
+                p = Pattern.compile(reg);
+                m = p.matcher(t);
+                if (m.find()) {
+                    miao = m.group(1);
+                    rslt[i].put("prof", m.group(1));
+                }
+                t="";
             }
-
             size = strLine.indexOf("END:VEVENT");
             if (size>-1 && bool) {
+                i++;
                 bool=false;
             }
 

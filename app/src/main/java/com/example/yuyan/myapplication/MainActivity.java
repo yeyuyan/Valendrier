@@ -1,8 +1,12 @@
 package com.example.yuyan.myapplication;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     private int isSuccessful=-1;
     private Handler handler=new Handler();
     Button button=null;
+    final int codeWrite=30;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     response=response+"\n"+inputLine;
                 }
                 in.close();
+
                 writeFile("Timetable.ics",response);
                 return responseCode;
             }
@@ -256,9 +262,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 return m1;
             }
             public void writeFile(String fileName,String writestr) throws IOException{
-                try{
 
-                    FileOutputStream fout =openFileOutput(fileName, MODE_PRIVATE);
+                try{
+                    //File file=new File(fileName);
+                    //if (!file.exists()){
+                    //     file.createNewFile();
+                    //}
+                    //FileOutputStream fout =Context.();
+                    FileOutputStream fout =openFileOutput(fileName,MODE_PRIVATE);
 
                     byte [] bytes = writestr.getBytes();
 
@@ -274,7 +285,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
             @Override
             public void run() {
+
                 Handler mainHandler=MainActivity.this.getHandler();
+                mainHandler.post(new Runnable(){
+                                     @Override
+                                     public void run() {
+                                         //getPermission();
+                                     }
+                                 });
                 String username,password;
                 String sessionID=null;
                 EditText editText = findViewById(R.id.editText);
@@ -349,6 +367,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         //}
 
     }
+    public void getPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            //申请WRITE_EXTERNAL_STORAGE权限
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},codeWrite ); }
+    }
+
     public void newPage(){
         AlertDialog.Builder builder = new Builder(this);
         int loginRight=this.isSuccessful;
