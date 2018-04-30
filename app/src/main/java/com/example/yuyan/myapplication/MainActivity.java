@@ -18,16 +18,21 @@ import android.app.AlertDialog.Builder;
 import android.content.Intent;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,10 +51,29 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     final int codeWrite=30;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        boolean autoLog=true;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ContextHolder.initial(this);
-
+        /*if (autoLog)
+            try {
+                String res = null;
+                String strFileName = "usrpsd.dat";
+                FileInputStream fin = openFileInput(strFileName);
+                int length = fin.available();
+                byte[] buffer = new byte[length];
+                fin.read(buffer);
+                res = new String(buffer, "UTF-8");
+                BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+                fin.close();
+            }
+            catch(Exception){} catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
         //StrictCode Mode
         //if (android.os.Build.VERSION.SDK_INT > 9) {
         //    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -287,12 +311,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             public void run() {
 
                 Handler mainHandler=MainActivity.this.getHandler();
-                mainHandler.post(new Runnable(){
-                                     @Override
-                                     public void run() {
-                                         //getPermission();
-                                     }
-                                 });
+
                 String username,password;
                 String sessionID=null;
                 EditText editText = findViewById(R.id.editText);

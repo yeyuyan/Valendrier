@@ -1,6 +1,7 @@
 package com.example.yuyan.myapplication;
 
 import android.graphics.Typeface;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -33,8 +34,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.io.FileInputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -47,15 +50,20 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
     private DatePicker datePicker;
     private Calendar cal;
     private Button buttonDate;
-
+    private Handler handler=new Handler();
     private int year;
     private int month;
     private int day;
-
+    private int weekday;
+    private String sWeekday="";
     private int gridHeight,gridWidth;
-    private RelativeLayout layout;
+    private LinearLayout layout;
     //private ScrollView scrollView;
     private static boolean isFirst = true;
+
+    public Handler getHandler() {
+        return handler;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +73,15 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         year=cal.get(Calendar.YEAR);
         month=cal.get(Calendar.MONTH)+1;
         day=cal.get(Calendar.DAY_OF_MONTH);
+        Date d1 = new Date(year-1900,month-1,day);
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
+        String week = sdf.format(d1);
+
+
+
         /*myView view=new myView(this);*/
 
-        setTitle(year+"-"+month+"-"+day);
+        setTitle(day+"-"+month+"-"+year+" "+week);
 
 
         buttonDate=findViewById(R.id.buttonDate);
@@ -87,10 +101,14 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
             @Override
             public void onDateSet(DatePicker view, int year1, int month1, int day1) {
 
-                setTitle(year1+"-"+(month1+1)+"-"+day1);
+                Handler mainHandler=Main2Activity.this.getHandler();
                 year=year1;
                 month=month1+1;
                 day=day1;
+                Date d1 = new Date(year1-1900,month1,day1);
+                SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
+                String week = sdf.format(d1);
+                setTitle(day1+"-"+(month1+1)+"-"+year1+" "+week);
                 Map[] events=null;
                 String text,txtStart,txtEnd;
                 int count=0;
@@ -110,10 +128,10 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
                     hour=end/100;
                     minute=end%100;
                     txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-                    text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+i.get("location")+"\n"+i.get("prof");
+                    text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
                     text=text.substring(0,text.length()-2);
 
-                    addView(count+1,text);
+                    addView(count,text);
                     count++;
                 }
 
@@ -123,7 +141,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
     private void addView(int start,String text){
         TextView tv;
         tv= createTv(start,text);
-        tv.setBackgroundColor(Color.argb(100,20,(start+4)*10,(start+4)*20));
+        tv.setBackgroundColor(Color.argb(100,10*start,(start+3)*10,(start+6)*18));
         layout.addView(tv);
     }
 
@@ -134,7 +152,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         if(isFirst) {
             isFirst = false;
             gridWidth = layout.getWidth();
-            gridHeight = layout.getHeight()/3;
+            gridHeight = layout.getHeight()/2;
         }
     }
 
@@ -143,7 +161,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         /*指定高度和宽度*/
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(gridWidth,gridHeight);
         /*指定位置*/
-        tv.setY(gridHeight*(start-1));
+        tv.setY(start*gridHeight/100);
         tv.setLayoutParams(params);
         tv.setGravity(Gravity.CENTER);
         tv.setText(text);
