@@ -6,15 +6,16 @@
     tools:context="com.example.menutest.MainActivity" >
 
     <item
-        android:id="@+id/start"
+        android:id="@+id/preference"
         android:orderInCategory="100"
-        app:showAsAction="never"
-        android:title="@string/first"/>
+        android:title="@string/first"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/over"
+        android:checkable="false"
         android:orderInCategory="200"
-        app:showAsAction="never"
-        android:title="@string/second"/>
+        android:title="@string/second"
+        app:showAsAction="never" />
 
 </menu>

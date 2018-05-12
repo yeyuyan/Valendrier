@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -48,61 +49,27 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     private int isSuccessful=-1;
     private Handler handler=new Handler();
     Button button=null;
+    CheckBox remember=null;
     final int codeWrite=30;
+    String username="";
+    String password="";
+    Thread thread=null;
+    boolean first=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         boolean autoLog=true;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ContextHolder.initial(this);
-        /*if (autoLog)
-            try {
-                String res = null;
-                String strFileName = "usrpsd.dat";
-                FileInputStream fin = openFileInput(strFileName);
-                int length = fin.available();
-                byte[] buffer = new byte[length];
-                fin.read(buffer);
-                res = new String(buffer, "UTF-8");
-                BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
-                fin.close();
-            }
-            catch(Exception){} catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }*/
-        //StrictCode Mode
-        //if (android.os.Build.VERSION.SDK_INT > 9) {
-        //    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        //    StrictMode.setThreadPolicy(policy);
-        //}
+        EditText editText = findViewById(R.id.editText);
+        EditText editText2 = findViewById(R.id.editText2);
+        if (!editText.equals("")) {
+            first=true;
+        }
 
-        Button butt=findViewById(R.id.button);
-        button=butt;
-        button.setOnClickListener(this);
-
-
-    }
-
-    public Handler getHandler() {
-        return handler;
-    }
-
-    //int isSuccessful(String username, String password) {
-      //  if (username.equals("yyy") && password.equals("yyy"))
-        //    return 1;
-        //else return 0;
-  //  }
-    public void setIsSuccessful(int param){
-        this.isSuccessful=param;
-    }
-    public void onClick(View v ){
-        button.setEnabled(false);
-        new Thread(new Runnable() {
-            private int successful=1;
+        //autoLog = remember.isChecked();
+        thread = new Thread(new Runnable() {
+            private int successful=2;
             private String adress1="https://cas.univ-valenciennes.fr/cas/login?service=https://portail.univ-valenciennes.fr/Login";
             private String adress2="https://vtmob.univ-valenciennes.fr/esup-vtclient-up4/stylesheets/desktop/welcome.xhtml";
 
@@ -309,98 +276,174 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
             @Override
             public void run() {
-
+                String username,password;
+                remember=findViewById(R.id.remember);
                 Handler mainHandler=MainActivity.this.getHandler();
 
-                String username,password;
-                String sessionID=null;
-                EditText editText = findViewById(R.id.editText);
-                EditText editText2 = findViewById(R.id.editText2);
-                username = editText.getText().toString();
-                password = editText2.getText().toString();
-                CookieHandler.setDefault(new CookieManager());
                 try {
-                    this.writeFile("usrpsd.dat",username+"\n"+password);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    String res = null;
+                    String strFileName = "usrpsd.dat";
+                    FileInputStream fin = openFileInput(strFileName);
+                    int length = fin.available();
+                    byte[] buffer = new byte[length];
+                    fin.read(buffer);
+                    res = new String(buffer, "UTF-8");
+                    BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+                    fin.close();
+                    username = sBuffer.readLine();
+                    password = sBuffer.readLine();
+                    MainActivity.this.setUsernameAndPassword(username, password);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            setText();
+                        }
+                    });
+                } catch (Exception e) {
+                    EditText editText = findViewById(R.id.editText);
+                    EditText editText2 = findViewById(R.id.editText2);
+                    username = editText.getText().toString();
+                    password = editText2.getText().toString();
                 }
+                if (!first) {
+                    if (!username.equals("")) {
+                        String sessionID = null;
+                        CookieHandler.setDefault(new CookieManager());
 
-                Map m=null;
-                String postParams = null;
-                String cookie=null;
-                PasswordHelp passwordSaver= new PasswordHelp();
-                passwordSaver.savePassword(ContextHolder.getContext(),username,password);
-                try {
-                    m = this.getFormParamsLogin(adress1,username,password);
-                    postParams=(String)m.get("params");
-                } catch (IOException e) {}
-                try {
-                    m=this.sendPostLogin(adress1,postParams);
-                    cookie=(String)m.get("cookie");
-                    if (cookie!=null) sessionID=cookie.substring(0,cookie.indexOf(";"));
-                } catch (Exception e) {}
 
-                try {
-                    m=this.getFormParamsDownloading(adress2,cookie);
-                    postParams=(String)m.get("params");
+                        Map m = null;
+                        String postParams = null;
+                        String cookie = null;
+                        PasswordHelp passwordSaver = new PasswordHelp();
+                        passwordSaver.savePassword(ContextHolder.getContext(), username, password);
+                        try {
+                            m = this.getFormParamsLogin(adress1, username, password);
+                            postParams = (String) m.get("params");
+                        } catch (IOException e) {
+                        }
+                        try {
+                            m = this.sendPostLogin(adress1, postParams);
+                            cookie = (String) m.get("cookie");
+                            if (cookie != null)
+                                sessionID = cookie.substring(0, cookie.indexOf(";"));
+                        } catch (Exception e) {
+                        }
+
+                        try {
+                            m = this.getFormParamsDownloading(adress2, cookie);
+                            postParams = (String) m.get("params");
+                        } catch (IOException e) {
+                            successful = 1;
+                        }
+
+                        try {
+                            if (this.sendPostDownloading(adress2, postParams, cookie) == 200)
+                                this.successful = 0;
+                            else this.successful = 1;
+
+                        } catch (Exception e) {
+                            successful = 1;
+                        }
+                        MainActivity.this.setIsSuccessful(successful);
+                        if (successful == 0) try {
+
+                            if (remember.isChecked())
+                                this.writeFile("usrpsd.dat", username + "\n" + password);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                newPage();
+                            }
+                        });
+                    }
                 }
-
-                catch (IOException e)
-                    {successful=1;}
-
-                try {
-                    if (this.sendPostDownloading(adress2,postParams,cookie)==200) this.successful=0;
-                    else this.successful=1;
-
-                } catch (Exception e) {successful=1;}
-                MainActivity.this.setIsSuccessful(successful);
                 mainHandler.post(new Runnable(){
                     @Override
                     public void run() {
-                        button.setEnabled(true);
-                        newPage();
+                    button.setEnabled(true);
+                    first=false;
                     }
                 });
-
-
-
-                /*MainActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        MainActivity.this.setIsSuccessful(successful);
-
-                    }
-                });*/
             }
 
-        }).start();
+        });
 
+/*
+        if (autoLog){
+            try {
+                String res = null;
+                String strFileName = "usrpsd.dat";
+                FileInputStream fin = openFileInput(strFileName);
+                int length = fin.available();
+                byte[] buffer = new byte[length];
+                fin.read(buffer);
+                res = new String(buffer, "UTF-8");
+                BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+                fin.close();
+                username =  sBuffer.readLine();
+                password =  sBuffer.readLine();
 
-
-
-        //else if (loginRight == 2) {
-          //  builder.setTitle("error connection");
-          //  builder.setMessage("Please check your internet connection.");
-          //  builder.setPositiveButton("OK", null);
-          //  builder.show();
-        //}
+            }
+            catch(Exception e){};
+            }
+*/
+        Button butt=findViewById(R.id.button);
+        button=butt;
+        button.setOnClickListener(this);
+        button.setEnabled(false);
+        thread.start();
 
     }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    //int isSuccessful(String username, String password) {
+      //  if (username.equals("yyy") && password.equals("yyy"))
+        //    return 1;
+        //else return 0;
+  //  }
+    public void setIsSuccessful(int param){
+        this.isSuccessful=param;
+    }
+    public void setUsernameAndPassword(String username,String password){
+        this.username=username;
+        this.password=password;
+    }
+    public void setText(){
+        remember.setChecked(true);
+        EditText editText = findViewById(R.id.editText);
+        EditText editText2 = findViewById(R.id.editText2);
+        editText.setText(username);
+        editText2.setText(password);
+    }
+    public void onClick(View v ){
+        //thread.stop();
+        thread.interrupt();
+        button.setEnabled(false);
+        new Thread(thread).start();
+
+    }
+    /*
     public void getPermission(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             //申请WRITE_EXTERNAL_STORAGE权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},codeWrite ); }
-    }
+    }*/
 
     public void newPage(){
         AlertDialog.Builder builder = new Builder(this);
         int loginRight=this.isSuccessful;
         if (loginRight==0) {
+            first=false;
             Intent intent= new Intent(this, Main2Activity.class);
             startActivity(intent);
         }
-
         if (loginRight == 1) {
             builder.setTitle("error password or error connection");
             builder.setMessage("Please check your password or connection again.");

@@ -1,9 +1,10 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Calendrier UVHC</string>
     <string name="username_enter">Idendifiant:</string>
-    <string name="login">Login</string>
+    <string name="login">Connexion</string>
     <string name="password_enter">Mot de passe:</string>
     <string name="calendar">Calendrier:</string>
-    <string name="first">Setting</string>
-    <string name="second">Log out</string>
+    <string name="first">Préference</string>
+    <string name="second">Déconnexion</string>
+    <string name="remember">Se souvenir de moi</string>
 </resources>

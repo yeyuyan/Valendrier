@@ -1,10 +1,12 @@
 package com.example.yuyan.myapplication;
 
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -174,6 +176,33 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+    //重写OptionsItemSelected(MenuItem item)来响应菜单项(MenuItem)的点击事件（根据id来区分是哪个item）
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+        switch (item.getItemId()) {
+            case 2131165301:
+
+                break;
+            case R.id.over:
+                try {
+                    File file = new File("usrpsd.dat");
+                    file.delete();
+                }
+                catch(Exception e){}
+                Intent intent= new Intent(this, MainActivity.class);
+                startActivity(intent);
+                break;
+
+            default:
+                break;
+        }
+        //int id=item.getItemId();
+        return super.onOptionsItemSelected(item);
     }
 
 /*
