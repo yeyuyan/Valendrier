@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     String username="";
     String password="";
     Thread thread=null;
-    boolean first=true;
+    //boolean first=true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         boolean autoLog=true;
@@ -63,11 +63,35 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         ContextHolder.initial(this);
         EditText editText = findViewById(R.id.editText);
         EditText editText2 = findViewById(R.id.editText2);
-        if (!editText.equals("")) {
-            first=true;
-        }
+        //if (!editText.equals("")) {
+        //    first=true;
+        //}
 
         //autoLog = remember.isChecked();
+
+/*
+        if (autoLog){
+            try {
+                String res = null;
+                String strFileName = "usrpsd.dat";
+                FileInputStream fin = openFileInput(strFileName);
+                int length = fin.available();
+                byte[] buffer = new byte[length];
+                fin.read(buffer);
+                res = new String(buffer, "UTF-8");
+                BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+                fin.close();
+                username =  sBuffer.readLine();
+                password =  sBuffer.readLine();
+
+            }
+            catch(Exception e){};
+            }
+*/
+        Button butt=findViewById(R.id.button);
+        button=butt;
+        button.setOnClickListener(this);
+        button.setEnabled(false);
         thread = new Thread(new Runnable() {
             private int successful=2;
             private String adress1="https://cas.univ-valenciennes.fr/cas/login?service=https://portail.univ-valenciennes.fr/Login";
@@ -253,24 +277,27 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 return m1;
             }
             public void writeFile(String fileName,String writestr) throws IOException{
-
+                FileOutputStream fout=null;
                 try{
                     //File file=new File(fileName);
                     //if (!file.exists()){
                     //     file.createNewFile();
                     //}
                     //FileOutputStream fout =Context.();
-                    FileOutputStream fout =openFileOutput(fileName,MODE_PRIVATE);
+                    fout=openFileOutput(fileName,MODE_PRIVATE);
 
                     byte [] bytes = writestr.getBytes();
 
                     fout.write(bytes);
 
-                    fout.close();
                 }
 
                 catch(Exception e){
                     e.printStackTrace();
+                }
+                finally {
+                    fout.close();
+
                 }
             }
 
@@ -279,33 +306,46 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 String username,password;
                 remember=findViewById(R.id.remember);
                 Handler mainHandler=MainActivity.this.getHandler();
-
+                FileInputStream fin=null;
+                String strFileName = "usrpsd.dat";
                 try {
                     String res = null;
-                    String strFileName = "usrpsd.dat";
-                    FileInputStream fin = openFileInput(strFileName);
+
+                    fin = openFileInput(strFileName);
                     int length = fin.available();
-                    byte[] buffer = new byte[length];
-                    fin.read(buffer);
-                    res = new String(buffer, "UTF-8");
-                    BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
-                    fin.close();
-                    username = sBuffer.readLine();
-                    password = sBuffer.readLine();
-                    MainActivity.this.setUsernameAndPassword(username, password);
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            setText();
-                        }
-                    });
+                    if (length==0){
+                        EditText editText = findViewById(R.id.editText);
+                        EditText editText2 = findViewById(R.id.editText2);
+                        username = editText.getText().toString();
+                        password = editText2.getText().toString();
+                    }
+                    else{
+
+
+                        byte[] buffer = new byte[length];
+                        fin.read(buffer);
+                        res = new String(buffer, "UTF-8");
+                        BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
+
+                        username = sBuffer.readLine();
+                        password = sBuffer.readLine();
+                        MainActivity.this.setUsernameAndPassword(username, password);
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                setText();
+                            }
+                        });
+                        fin.close();
+                    }
                 } catch (Exception e) {
                     EditText editText = findViewById(R.id.editText);
                     EditText editText2 = findViewById(R.id.editText2);
                     username = editText.getText().toString();
                     password = editText2.getText().toString();
                 }
-                if (!first) {
+
+                //if (!first) {
                     if (!username.equals("")) {
                         String sessionID = null;
                         CookieHandler.setDefault(new CookieManager());
@@ -359,41 +399,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                             }
                         });
                     }
-                }
+                //}
                 mainHandler.post(new Runnable(){
                     @Override
                     public void run() {
-                    button.setEnabled(true);
-                    first=false;
+                        button.setEnabled(true);
+                        //first=false;
                     }
                 });
             }
 
         });
-
-/*
-        if (autoLog){
-            try {
-                String res = null;
-                String strFileName = "usrpsd.dat";
-                FileInputStream fin = openFileInput(strFileName);
-                int length = fin.available();
-                byte[] buffer = new byte[length];
-                fin.read(buffer);
-                res = new String(buffer, "UTF-8");
-                BufferedReader sBuffer = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
-                fin.close();
-                username =  sBuffer.readLine();
-                password =  sBuffer.readLine();
-
-            }
-            catch(Exception e){};
-            }
-*/
-        Button butt=findViewById(R.id.button);
-        button=butt;
-        button.setOnClickListener(this);
-        button.setEnabled(false);
         thread.start();
 
     }
@@ -420,10 +436,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         EditText editText2 = findViewById(R.id.editText2);
         editText.setText(username);
         editText2.setText(password);
+
+
     }
     public void onClick(View v ){
         //thread.stop();
-        thread.interrupt();
+        //thread.interrupt();
         button.setEnabled(false);
         new Thread(thread).start();
 
@@ -440,7 +458,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         AlertDialog.Builder builder = new Builder(this);
         int loginRight=this.isSuccessful;
         if (loginRight==0) {
-            first=false;
+            //first=false;
             Intent intent= new Intent(this, Main2Activity.class);
             startActivity(intent);
         }

@@ -32,6 +32,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,7 +81,6 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         String week = sdf.format(d1);
 
 
-
         /*myView view=new myView(this);*/
 
         setTitle(day+"-"+month+"-"+year+" "+week);
@@ -89,15 +89,17 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         buttonDate=findViewById(R.id.buttonDate);
         buttonDate.setOnClickListener(this);
         layout=findViewById(R.id.layout);
-        //scrollView=findViewById(R.id.scrollview);
-        /*LinearLayout linearLayout=new LinearLayout(this);
-        linearLayout=findViewById(R.id.a10001);
-        linearLayout.addView(view);*/
+        //onWindowFocusChanged(true);
+        //gridHeight=600;
+        //gridWidth=1020;
+
+
     }
+
+
 
     @Override
     public void onClick(View V){
-
         new DatePickerDialog(this, new OnDateSetListener() {
 
             @Override
@@ -155,6 +157,36 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
             isFirst = false;
             gridWidth = layout.getWidth();
             gridHeight = layout.getHeight()/2;
+            Map[] events=null;
+            String text,txtStart,txtEnd;
+            try {
+                events=readFileOnLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            int count1=0;
+            try {
+                events=readFileOnLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            layout.removeAllViews();
+            int start,end,hour,minute=0;
+            for(Map i:events){
+                start=Integer.parseInt((String)i.get("start"))+200;
+                end=Integer.parseInt((String)i.get("end"))+200;
+                hour=start/100;
+                minute=start%100;
+                txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+                hour=end/100;
+                minute=end%100;
+                txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+                text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
+                text=text.substring(0,text.length()-2);
+
+                addView(count1,text);
+                count1++;
+            }
         }
     }
 
@@ -170,6 +202,29 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         tv.setTypeface(null, Typeface.BOLD);
         return tv;
     }
+    public void writeFile(String fileName,String writestr) throws IOException{
+        FileOutputStream fout=null;
+        try{
+            //File file=new File(fileName);
+            //if (!file.exists()){
+            //     file.createNewFile();
+            //}
+            //FileOutputStream fout =Context.();
+            fout=openFileOutput(fileName,MODE_PRIVATE);
+
+            byte [] bytes = writestr.getBytes();
+
+            fout.write(bytes);
+
+        }
+
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            fout.close();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -183,17 +238,22 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-
+        boolean bool=false;
         switch (item.getItemId()) {
+
             case 2131165301:
 
                 break;
             case R.id.over:
                 try {
-                    File file = new File("usrpsd.dat");
-                    file.delete();
+                    //File file = new File("usrpsd.dat");
+
+                    writeFile("usrpsd.dat","");
+
                 }
+
                 catch(Exception e){}
+                //if (bool){};
                 Intent intent= new Intent(this, MainActivity.class);
                 startActivity(intent);
                 break;
