@@ -6,9 +6,12 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.view.GestureDetector;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
@@ -25,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.view.Gravity;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -48,8 +52,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
-public class Main2Activity extends AppCompatActivity implements OnClickListener{
+// TODO: 5/17/18  xialacaidan
+public class Main2Activity extends AppCompatActivity implements OnClickListener,View.OnTouchListener {
     private DatePicker datePicker;
     private Calendar cal;
     private Button buttonDate;
@@ -59,14 +63,23 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
     private int day;
     private int weekday;
     private String sWeekday="";
-    private int gridHeight,gridWidth;
+
     private LinearLayout layout;
     //private ScrollView scrollView;
     private static boolean isFirst = true;
+    private GestureDetector mGestureDetector;
+    float x1=0;
+    float y1=0;
+    float x2=0;
+    float y2=0;
+    int gridHeight;
+    int gridWidth;
+
 
     public Handler getHandler() {
         return handler;
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +92,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         Date d1 = new Date(year-1900,month-1,day);
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
         String week = sdf.format(d1);
-
+        mGestureDetector = new GestureDetector(new simpleGestureListener());
 
         /*myView view=new myView(this);*/
 
@@ -92,11 +105,51 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         //onWindowFocusChanged(true);
         //gridHeight=600;
         //gridWidth=1020;
+        layout.setOnTouchListener(this);
+        layout.setLongClickable(true);
+
+
+        }
+
+/*
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    public boolean onSingleTapUp(MotionEvent e) {
+
+        return false;
+    }
+
+    public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                            float distanceX, float distanceY) {
+        return false;
+    }
+
+    public void onLongPress(MotionEvent e) {
 
 
     }
 
-
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        int verticalMinDistance = 20;
+        int minVelocity         = 0;
+        if (e1.getX() - e2.getX() >verticalMinDistance  && Math.abs(velocityX) > minVelocity) {
+            Toast.makeText(Main2Activity.this, "向左手势", Toast.LENGTH_SHORT).show();
+            day-=1;
+            changeView();
+        } else if (e2.getX() - e1.getX() > verticalMinDistance && Math.abs(velocityX) > minVelocity) {
+            Toast.makeText(Main2Activity.this, "向右手势", Toast.LENGTH_SHORT).show();
+            day+=1;
+            changeView();
+        }
+        return false;
+    }*/
 
     @Override
     public void onClick(View V){
@@ -148,7 +201,78 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         tv.setBackgroundColor(Color.argb(100,10*start,(start+3)*10,(start+6)*18));
         layout.addView(tv);
     }
+    /*
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        //继承了Activity的onTouchEvent方法，直接监听点击事件
+        if(event.getAction() == MotionEvent.ACTION_DOWN) {
+            //当手指按下的时候
+            x1 = event.getX();
+            y1 = event.getY();
+        }
+        if(event.getAction() == MotionEvent.ACTION_UP) {
+            //当手指离开的时候
+            x2 = event.getX();
+            y2 = event.getY();
+            if(y1 - y2 > 50) {
+                Toast.makeText(Main2Activity.this, "向上滑", Toast.LENGTH_SHORT).show();
+            } else if(y2 - y1 > 50) {
+                Toast.makeText(Main2Activity.this, "向下滑", Toast.LENGTH_SHORT).show();
+            } else if(x1 - x2 > 50) {
+                Toast.makeText(Main2Activity.this, "向左滑", Toast.LENGTH_SHORT).show();
+            } else if(x2 - x1 > 50) {
+                Toast.makeText(Main2Activity.this, "向右滑", Toast.LENGTH_SHORT).show();
+            }
+        }
+        return super.onTouchEvent(event);
+    }
+    */
 
+
+    public void changeView(){
+        layout.removeAllViews();
+
+        Date d1 = new Date(year-1900,month-1,day);
+        SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
+        SimpleDateFormat sdfD = new SimpleDateFormat("dd");
+        SimpleDateFormat sdfM = new SimpleDateFormat("MM");
+        SimpleDateFormat sdfY = new SimpleDateFormat("yyyy");
+        day = Integer.valueOf(sdfD.format(d1));
+        month = Integer.valueOf(sdfM.format(d1));
+        year = Integer.valueOf(sdfY.format(d1));
+        String week = sdfW.format(d1);
+        setTitle(day+"-"+month+"-"+year+" "+week);
+        Map[] events=null;
+        String text,txtStart,txtEnd;
+        try {
+            events=readFileOnLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int count1=0;
+        try {
+            events=readFileOnLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int start,end,hour,minute=0;
+        for(Map i:events){
+            start=Integer.parseInt((String)i.get("start"))+200;
+            end=Integer.parseInt((String)i.get("end"))+200;
+            hour=start/100;
+            minute=start%100;
+            txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+            hour=end/100;
+            minute=end%100;
+            txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+            text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
+            text=text.substring(0,text.length()-2);
+
+            addView(count1,text);
+            count1++;
+        }
+    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -157,36 +281,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
             isFirst = false;
             gridWidth = layout.getWidth();
             gridHeight = layout.getHeight()/2;
-            Map[] events=null;
-            String text,txtStart,txtEnd;
-            try {
-                events=readFileOnLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            int count1=0;
-            try {
-                events=readFileOnLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            layout.removeAllViews();
-            int start,end,hour,minute=0;
-            for(Map i:events){
-                start=Integer.parseInt((String)i.get("start"))+200;
-                end=Integer.parseInt((String)i.get("end"))+200;
-                hour=start/100;
-                minute=start%100;
-                txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-                hour=end/100;
-                minute=end%100;
-                txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-                text=txtStart +"-"+txtEnd+"\n"+i.get("summary")+"\n"+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
-                text=text.substring(0,text.length()-2);
+            changeView();
 
-                addView(count1,text);
-                count1++;
-            }
         }
     }
 
@@ -299,7 +395,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         BufferedReader sBuffer=new BufferedReader(new InputStreamReader(new ByteArrayInputStream(res.getBytes(Charset.forName("UTF-8"))), Charset.forName("UTF-8")));
         fin.close();
 
-        String strLine = null;
+        String strLine =
+                null;
         int size=0;
         int len=0;
         while((strLine =  sBuffer.readLine()) != null) {
@@ -405,6 +502,54 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener{
         sBuffer.close();
         return(rslt);
     }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent event) {
+        return mGestureDetector.onTouchEvent(event);
+    }
+    private class simpleGestureListener extends
+            GestureDetector.SimpleOnGestureListener {
+
+        /*****OnGestureListener的函数*****/
+
+        final int FLING_MIN_DISTANCE = 60, FLING_MIN_VELOCITY = 90;
+
+        // 触发条件 ：
+        // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
+
+        // 参数解释：
+        // e1：第1个ACTION_DOWN MotionEvent
+        // e2：最后一个ACTION_MOVE MotionEvent
+        // velocityX：X轴上的移动速度，像素/秒
+        // velocityY：Y轴上的移动速度，像素/秒
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+                               float velocityY) {
+
+
+            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
+                // Fling left
+                //Log.i("MyGesture", "Fling left");
+                day+=1;
+                changeView();
+                Toast.makeText(Main2Activity.this, "Fling Left", Toast.LENGTH_SHORT).show();
+            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
+                // Fling right
+                ///Log.i("MyGesture", "Fling right");
+                day-=1;
+                changeView();
+                Toast.makeText(Main2Activity.this, "Fling Right", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        }
+
+    }
+/*
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        return false;
+    }*/
 
 
 
