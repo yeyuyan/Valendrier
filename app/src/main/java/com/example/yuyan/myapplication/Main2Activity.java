@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -52,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+
 // TODO: 5/17/18  xialacaidan
 public class Main2Activity extends AppCompatActivity implements OnClickListener,View.OnTouchListener {
     private DatePicker datePicker;
@@ -64,16 +66,19 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
     private int weekday;
     private String sWeekday="";
 
+    private ScrollView scrollView;
     private LinearLayout layout;
     //private ScrollView scrollView;
     private static boolean isFirst = true;
     private GestureDetector mGestureDetector;
+    PullScrollView pullScrollView;
     float x1=0;
     float y1=0;
     float x2=0;
     float y2=0;
     int gridHeight;
     int gridWidth;
+    private TextView textView;
 
 
     public Handler getHandler() {
@@ -98,58 +103,16 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
         setTitle(day+"-"+month+"-"+year+" "+week);
 
-
+        pullScrollView=(PullScrollView) findViewById(R.id.test);
+        scrollView=findViewById(R.id.scrollview);
         buttonDate=findViewById(R.id.buttonDate);
         buttonDate.setOnClickListener(this);
-        layout=findViewById(R.id.layout);
-        //onWindowFocusChanged(true);
-        //gridHeight=600;
-        //gridWidth=1020;
+        layout=(LinearLayout)findViewById(R.id.layout);
         layout.setOnTouchListener(this);
         layout.setLongClickable(true);
 
 
         }
-
-/*
-    public boolean onDown(MotionEvent e) {
-        return false;
-    }
-
-    public void onShowPress(MotionEvent e) {
-
-    }
-
-    public boolean onSingleTapUp(MotionEvent e) {
-
-        return false;
-    }
-
-    public boolean onScroll(MotionEvent e1, MotionEvent e2,
-                            float distanceX, float distanceY) {
-        return false;
-    }
-
-    public void onLongPress(MotionEvent e) {
-
-
-    }
-
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        int verticalMinDistance = 20;
-        int minVelocity         = 0;
-        if (e1.getX() - e2.getX() >verticalMinDistance  && Math.abs(velocityX) > minVelocity) {
-            Toast.makeText(Main2Activity.this, "向左手势", Toast.LENGTH_SHORT).show();
-            day-=1;
-            changeView();
-        } else if (e2.getX() - e1.getX() > verticalMinDistance && Math.abs(velocityX) > minVelocity) {
-            Toast.makeText(Main2Activity.this, "向右手势", Toast.LENGTH_SHORT).show();
-            day+=1;
-            changeView();
-        }
-        return false;
-    }*/
 
     @Override
     public void onClick(View V){
@@ -512,7 +475,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
         /*****OnGestureListener的函数*****/
 
-        final int FLING_MIN_DISTANCE = 60, FLING_MIN_VELOCITY = 90;
+        final int FLING_MIN_DISTANCE_X = 100, FLING_MIN_VELOCITY_X = 200,FLING_MAX_DISTANCE_Y = 300;
+
 
         // 触发条件 ：
         // X轴的坐标位移大于FLING_MIN_DISTANCE，且移动速度大于FLING_MIN_VELOCITY个像素/秒
@@ -526,15 +490,15 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                                float velocityY) {
 
 
-            if (e1.getX() - e2.getX() > FLING_MIN_DISTANCE
-                    && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
+            if (e1.getRawX() - e2.getRawX() > FLING_MIN_DISTANCE_X
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY_X && Math.abs(e2.getRawY()-e1.getRawY())<FLING_MAX_DISTANCE_Y) {
                 // Fling left
                 //Log.i("MyGesture", "Fling left");
                 day+=1;
                 changeView();
                 Toast.makeText(Main2Activity.this, "Fling Left", Toast.LENGTH_SHORT).show();
-            } else if (e2.getX() - e1.getX() > FLING_MIN_DISTANCE
-                    && Math.abs(velocityX) > FLING_MIN_VELOCITY) {
+            } else if (e2.getRawX() - e1.getRawX() > FLING_MIN_DISTANCE_X
+                    && Math.abs(velocityX) > FLING_MIN_VELOCITY_X && Math.abs(e2.getRawY()-e1.getRawY())<FLING_MAX_DISTANCE_Y) {
                 // Fling right
                 ///Log.i("MyGesture", "Fling right");
                 day-=1;
@@ -545,6 +509,17 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         }
 
     }
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev){
+        //TODOAuto-generatedmethodstub
+        mGestureDetector.onTouchEvent(ev); //让GestureDetector响应触碰事件
+        super.dispatchTouchEvent(ev); //让Activity响应触碰事件
+        return false;
+    }
+
+
+
+
 /*
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
