@@ -418,7 +418,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             if (m1.find()){
                 rslt[i].put("end",m1.group(1));}
             else {rslt[i].put("end", "None");}
-            reg="SUMMARY:(.*?) \\(";
+            reg="SUMMARY:(.*?)\\(";
             p = Pattern.compile(reg, Pattern.DOTALL);
             m1=p.matcher(content[i]);
             if (m1.find()){ rslt[i].put("summary", m1.group(1));}
