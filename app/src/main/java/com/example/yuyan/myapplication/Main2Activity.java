@@ -82,8 +82,9 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
     int gridWidth;
     private TextView textView;
     TimeZone tz;
-    int offsetTime;
 
+    int offsetTime,offsetTime2;
+    String allText;
 
     public Handler getHandler() {
         return handler;
@@ -116,9 +117,13 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         layout=(LinearLayout)findViewById(R.id.layout);
         layout.setOnTouchListener(this);
         layout.setLongClickable(true);
-
-
+        try {
+            allText = readFile("Timetable.ics");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+    }
 
     @Override
     public void onClick(View V){
@@ -127,14 +132,14 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             @Override
             public void onDateSet(DatePicker view, int year1, int month1, int day1) {
                 char color_='w';
-                Handler mainHandler=Main2Activity.this.getHandler();
-                year=year1;
-                month=month1+1;
-                day=day1;
-                Date d1 = new Date(year1-1900,month1,day1);
+                //Handler mainHandler=Main2Activity.this.getHandler();
+                setView(day1, month1+1, year1);
+                /*Date d1 = new Date(year1-1900,month1,day1);
                 SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
                 String week = sdf.format(d1);
                 setTitle(day1+"-"+(month1+1)+"-"+year1+" "+week);
+                long mseconds=d1.getTime();
+                offsetTime2=tz.getOffset(mseconds)/(3600*1000);
                 Map[] events=null;
                 String text,txtStart,txtEnd;
                 int count=0;
@@ -147,8 +152,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                 layout.removeAllViews();
                 int start,end,hour,minute=0;
                 for(Map i:events){
-                    start=Integer.parseInt((String)i.get("start"))+200;
-                    end=Integer.parseInt((String)i.get("end"))+200;
+                    start=Integer.parseInt((String)i.get("start"))+offsetTime2*100;
+                    end=Integer.parseInt((String)i.get("end"))+offsetTime2*100;
                     hour=start/100;
                     minute=start%100;
                     txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
@@ -168,6 +173,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                     count++;
                 }
                 addView(count,"",'w');
+                */
                 //layout.addView(tve);
 
             }
@@ -192,61 +198,27 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                 tv.setBackgroundColor(Color.argb(100,200+3*start,200+(start) * 3,255));
                 break;
             case 'G':
-                tv.setBackgroundColor(Color.argb(100,200,200,200));
+                tv.setBackgroundColor(Color.argb(100,140,140,140));
                 break;
                 //Color.argb(100, 10 * start, (start + 3) * 10, (start + 6) * 18));
 
         }
         layout.addView(tv);
     }
-    /*
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        //继承了Activity的onTouchEvent方法，直接监听点击事件
-        if(event.getAction() == MotionEvent.ACTION_DOWN) {
-            //当手指按下的时候
-            x1 = event.getX();
-            y1 = event.getY();
-        }
-        if(event.getAction() == MotionEvent.ACTION_UP) {
-            //当手指离开的时候
-            x2 = event.getX();
-            y2 = event.getY();
-            if(y1 - y2 > 50) {
-                Toast.makeText(Main2Activity.this, "向上滑", Toast.LENGTH_SHORT).show();
-            } else if(y2 - y1 > 50) {
-                Toast.makeText(Main2Activity.this, "向下滑", Toast.LENGTH_SHORT).show();
-            } else if(x1 - x2 > 50) {
-                Toast.makeText(Main2Activity.this, "向左滑", Toast.LENGTH_SHORT).show();
-            } else if(x2 - x1 > 50) {
-                Toast.makeText(Main2Activity.this, "向右滑", Toast.LENGTH_SHORT).show();
-            }
-        }
-        return super.onTouchEvent(event);
-    }
-    */
 
-
-    public void changeView(){
+    /*public void changeView(){
         layout.removeAllViews();
         char color_='w';
-        Date d1 = new Date(year-1900,month-1,day);
         SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
         SimpleDateFormat sdfD = new SimpleDateFormat("dd");
         SimpleDateFormat sdfM = new SimpleDateFormat("MM");
         SimpleDateFormat sdfY = new SimpleDateFormat("yyyy");
-        day = Integer.valueOf(sdfD.format(d1));
-        month = Integer.valueOf(sdfM.format(d1));
-        year = Integer.valueOf(sdfY.format(d1));
         String week = sdfW.format(d1);
+        long mseconds=d1.getTime();
+        offsetTime=tz.getOffset(mseconds)/(3600*1000);
         setTitle(day+"-"+month+"-"+year+" "+week);
         Map[] events=null;
         String text,txtStart,txtEnd;
-        try {
-            events=readFileOnLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         int count1=0;
         try {
             events=readFileOnLine();
@@ -256,8 +228,8 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         String summary;
         int start,end,hour,minute=0;
         for(Map i:events){
-            start=Integer.parseInt((String)i.get("start"))+200;
-            end=Integer.parseInt((String)i.get("end"))+200;
+            start=Integer.parseInt((String)i.get("start"))+offsetTime*100;
+            end=Integer.parseInt((String)i.get("end"))+offsetTime*100;
             hour=start/100;
             minute=start%100;
             txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
@@ -277,7 +249,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             count1++;
         }
         addView(count1,"",'w');
-    }
+    }*/
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -286,7 +258,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             isFirst = false;
             gridWidth = layout.getWidth();
             gridHeight = layout.getHeight()/2;
-            changeView();
+            setView(day, month, year);
 
         }
     }
@@ -384,13 +356,146 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         return res;
     }*/
 
+    String readFile(String strFileName) throws IOException {
+        //String strFileName = "Timetable.ics";
+        FileInputStream fin = openFileInput(strFileName);
+        int length = fin.available();
+        byte [] buffer = new byte[length];
+        fin.read(buffer);
+        return new String(buffer, "UTF-8");
+    }
 
+    Map[] getLessons(String strFile,String date_){
+        String reg = "DTSTART:"+date_+"T(.*?)END:VEVENT";
+        //date_="20180604";
+        Pattern p = Pattern.compile(reg, Pattern.DOTALL);
+        Matcher m = p.matcher(strFile);
+        Matcher m1;
+        String[] content=new String[20];
+        int i;
+        i=0;
+        String regr;
+        while(m.find()) {
+            regr="(\r*)";
+            content[i]=m.group(0);
+            p = Pattern.compile(regr);
+            m1 = p.matcher(content[i]);
+            if (m1.find()) content[i]=m1.replaceAll("");
+            regr="(\n *)";
+            p = Pattern.compile(regr);
+            m1 = p.matcher(content[i]);
+            if (m1.find()) content[i]=m1.replaceAll("");
+            regr="(\n*)";
+            p = Pattern.compile(regr);
+            m1 = p.matcher(content[i]);
+            regr="(\\\\n*)";
+            p = Pattern.compile(regr);
+            m1 = p.matcher(content[i]);
+            if (m1.find()) content[i]=m1.replaceAll("");
+            regr="(\\\\)";
+            p = Pattern.compile(regr);
+            m1 = p.matcher(content[i]);
+            if (m1.find()) content[i]=m1.replaceAll("");
+            i = i + 1;
+        }
+        int len=i;
+        Map[] rslt=new HashMap[len];
+        for (i=0;i<len;i++){
+            rslt[i]=new HashMap();
+        }
+        if (len==0) return rslt;
+        boolean bln=false;
+        for (i=0;i<len;i++){
+            reg = "DTSTART:" + date_ + "T(.*?)00Z";
+            p = Pattern.compile(reg, Pattern.DOTALL);
+            m1 = p.matcher(content[i]);
+            if (m1.find()){
+                rslt[i].put("start",m1.group(1));}
+            else rslt[i].put("start","None");
+            reg="DTEND:"+date_+"T(.*?)00Z";
+            p = Pattern.compile(reg, Pattern.DOTALL);
+            m1=p.matcher(content[i]);
+            if (m1.find()){
+                rslt[i].put("end",m1.group(1));}
+            else {rslt[i].put("end", "None");}
+            reg="SUMMARY:(.*?) \\(";
+            p = Pattern.compile(reg, Pattern.DOTALL);
+            m1=p.matcher(content[i]);
+            if (m1.find()){ rslt[i].put("summary", m1.group(1));}
+            else{rslt[i].put("summary", "None");}
+            reg="LOCATION:(.*?)DESCRIPTION";
+            p = Pattern.compile(reg, Pattern.DOTALL);
+            m1 = p.matcher(content[i]);
+            if (m1.find()){ rslt[i].put("location", m1.group(1));}
+            else{rslt[i].put("location", "None");}
+            reg="Prof : (.*?)Groupe";
+            p = Pattern.compile(reg, Pattern.DOTALL);
+            m1 = p.matcher(content[i]);
+            if (m1.find()){ rslt[i].put("prof", m1.group(1));}
+            else{rslt[i].put("prof", "None");}
 
+        }
+
+        return rslt;
+
+    }
+    void setView(int day1 , int month1 , int year1){
+        char color_='w';
+        Date d1 = new Date(year1-1900,month1-1,day1);
+        SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
+        SimpleDateFormat sdfD = new SimpleDateFormat("dd");
+        SimpleDateFormat sdfM = new SimpleDateFormat("MM");
+        SimpleDateFormat sdfY = new SimpleDateFormat("yyyy");
+        String week = sdfW.format(d1);
+        String day_=sdfD.format(d1);
+        String month_=sdfM.format(d1);
+        String year_=sdfY.format(d1);
+        day=Integer.valueOf(day_);
+        year=Integer.valueOf(year_);
+        month=Integer.valueOf(month_);
+        setTitle(day_+"-"+month_+"-"+year_+" "+week);
+        long mseconds=d1.getTime();
+        offsetTime=tz.getOffset(mseconds)/(3600*1000);
+        Map[] events=null;
+
+        try {
+            events=readFileOnLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        events = getLessons(allText,year_+month_+day_);
+        String text,txtStart,txtEnd;
+        int count=0;
+        String summary;
+        layout.removeAllViews();
+        int start,end,hour,minute=0;
+        for(Map i:events){
+            start=Integer.parseInt((String)i.get("start"))+offsetTime*100;
+            end=Integer.parseInt((String)i.get("end"))+offsetTime*100;
+            hour=start/100;
+            minute=start%100;
+            txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+            hour=end/100;
+            minute=end%100;
+            summary=i.get("summary")+"\n";
+            txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
+            text=txtStart +"-"+txtEnd+"\n"+summary+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
+            //text=text.substring(0,text.length()-1);
+            if (summary.contains("CM")) color_='p';
+            if (summary.contains("TD")) color_='b';
+            if (summary.contains("TP")) color_='g';
+            if (summary.contains("RES")) {color_='G';text=txtStart +"-"+txtEnd+"\n"+"Reservation\n"+"LOC : "+i.get("location")+"\n";}
+            addView(count,text,color_);
+            count++;
+        }
+        addView(count,"",'w');
+        //layout.addView(tve);
+    }
     Map[] readFileOnLine() throws IOException {
         String res=null;
         String strFileName = "Timetable.ics";
         //File fis = new File(strFileName);
-        //BufferedReader sBuffer = new BufferedReader(new FileReader(fis));
+        //BufferedReader sBuffera = new BufferedReader(new FileReader(fis));
         FileInputStream fin = openFileInput(strFileName);
         int length = fin.available();
         byte [] buffer = new byte[length];
@@ -446,7 +551,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             }
             size = strLine.indexOf("SUMMARY:");
             if (size>-1 && bool){
-                String reg="SUMMARY:(.*) \\(";
+                String reg="SUMMARY:(d.*) \\(";
                 p = Pattern.compile(reg);
                 m = p.matcher(strLine);
                 if (m.find())
@@ -537,14 +642,14 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
                 // Fling left
                 //Log.i("MyGesture", "Fling left");
                 day+=1;
-                changeView();
+                setView(day,month,year);
                 //Toast.makeText(Main2Activity.this, "Fling Left", Toast.LENGTH_SHORT).show();
             } else if (e2.getRawX() - e1.getRawX() > FLING_MIN_DISTANCE_X
                     && Math.abs(velocityX) > FLING_MIN_VELOCITY_X && Math.abs(e2.getRawY()-e1.getRawY())<FLING_MAX_DISTANCE_Y) {
                 // Fling right
                 ///Log.i("MyGesture", "Fling right");
                 day-=1;
-                changeView();
+                setView(day,month,year);
                 //Toast.makeText(Main2Activity.this, "Fling Right", Toast.LENGTH_SHORT).show();
             }
             return true;
