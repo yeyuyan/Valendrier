@@ -71,7 +71,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
     private ScrollView scrollView;
     private LinearLayout layout;
     //private ScrollView scrollView;
-    private static boolean isFirst = true;
+    private static boolean isFirst;
     private GestureDetector mGestureDetector;
     PullScrollView pullScrollView;
     float x1=0;
@@ -93,6 +93,7 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        isFirst=true;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         cal=Calendar.getInstance();
@@ -206,61 +207,11 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         layout.addView(tv);
     }
 
-    /*public void changeView(){
-        layout.removeAllViews();
-        char color_='w';
-        SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
-        SimpleDateFormat sdfD = new SimpleDateFormat("dd");
-        SimpleDateFormat sdfM = new SimpleDateFormat("MM");
-        SimpleDateFormat sdfY = new SimpleDateFormat("yyyy");
-        String week = sdfW.format(d1);
-        long mseconds=d1.getTime();
-        offsetTime=tz.getOffset(mseconds)/(3600*1000);
-        setTitle(day+"-"+month+"-"+year+" "+week);
-        Map[] events=null;
-        String text,txtStart,txtEnd;
-        int count1=0;
-        try {
-            events=readFileOnLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String summary;
-        int start,end,hour,minute=0;
-        for(Map i:events){
-            start=Integer.parseInt((String)i.get("start"))+offsetTime*100;
-            end=Integer.parseInt((String)i.get("end"))+offsetTime*100;
-            hour=start/100;
-            minute=start%100;
-            txtStart=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-            hour=end/100;
-            minute=end%100;
-            summary=i.get("summary")+"\n";
-            txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
-            text=txtStart +"-"+txtEnd+"\n"+summary+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
-            text=text.substring(0,text.length()-2);
-            if (summary.contains("CM")) color_='p';
-            if (summary.contains("TD")) color_='b';
-            if (summary.contains("TP")) color_='g';
-            if (summary.contains("RES")) color_='G';
-
-
-            addView(count1,text,color_);
-            count1++;
-        }
-        addView(count1,"",'w');
-    }*/
-
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if(isFirst) {
-            isFirst = false;
-            gridWidth = layout.getWidth();
-            gridHeight = layout.getHeight()/2;
-            setView(day, month, year);
+        setView(day, month, year);
 
-        }
     }
 
     private TextView createTv (int start, String text){
@@ -338,23 +289,6 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         return super.onOptionsItemSelected(item);
     }
 
-/*
-    public String readFile(String fileName) throws IOException {
-        String res="";
-        try{
-            FileInputStream fin;
-            fin = openFileInput(fileName);
-            int length = fin.available();
-            byte [] buffer = new byte[length];
-            fin.read(buffer);
-            res = new String (buffer, "UTF-8");
-            fin.close();
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-        return res;
-    }*/
 
     String readFile(String strFileName) throws IOException {
         //String strFileName = "Timetable.ics";
@@ -440,6 +374,11 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
 
     }
     void setView(int day1 , int month1 , int year1){
+        if(isFirst) {
+            isFirst = false;
+            gridWidth = layout.getWidth();
+            gridHeight = layout.getHeight() / 2;
+        }
         char color_='w';
         Date d1 = new Date(year1-1900,month1-1,day1);
         SimpleDateFormat sdfW = new SimpleDateFormat("EEEE");
@@ -481,10 +420,10 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
             txtEnd=String.format(Locale.ENGLISH,"%02d",hour)+":"+String.format(Locale.ENGLISH,"%02d",minute);
             text=txtStart +"-"+txtEnd+"\n"+summary+"LOC : "+i.get("location")+"\n"+"PROF : "+i.get("prof");
             //text=text.substring(0,text.length()-1);
-            if (summary.contains("CM")) color_='p';
-            if (summary.contains("TD")) color_='b';
-            if (summary.contains("TP")) color_='g';
-            if (summary.contains("RES")) {color_='G';text=txtStart +"-"+txtEnd+"\n"+"Reservation\n"+"LOC : "+i.get("location")+"\n";}
+            if (summary.contains("CM :")) color_='p';
+            else if (summary.contains("TD :")) color_='b';
+            else if (summary.contains("TP :")) color_='g';
+            else if (summary.contains("RES")) {color_='G';text=txtStart +"-"+txtEnd+"\n"+"Reservation\n"+"LOC : "+i.get("location")+"\n";}
             addView(count,text,color_);
             count++;
         }
@@ -663,54 +602,4 @@ public class Main2Activity extends AppCompatActivity implements OnClickListener,
         super.dispatchTouchEvent(ev); //让Activity响应触碰事件
         return false;
     }
-
-
-
-
-/*
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        return false;
-    }*/
-
-
-
-/*
-    class myView extends View {
-        Paint mPaint = new Paint();
-        public myView(Context context) {
-            super(context);
-            mPaint.setColor(Color.YELLOW);
-            mPaint.setStrokeJoin(Paint.Join.ROUND);
-            mPaint.setStrokeCap(Paint.Cap.ROUND);
-            mPaint.setStrokeWidth(3);
-        }
-
-        //实现View中的OnMeasure方法进行测量
-        private double height;
-        private double width;
-        private double sectionHeight;
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            height = MeasureSpec.getSize(heightMeasureSpec);
-            width = MeasureSpec.getSize(widthMeasureSpec);
-            sectionHeight = height / 11;//10hours + 1 title
-            setMeasuredDimension(widthMeasureSpec,heightMeasureSpec);
-
-            //setMeasuredDimension(width,height);
-        }
-
-        protected void onDraw(Canvas canvas) {
-
-            //画横线
-            for (int i = 0; i <= 11; i++) {
-                canvas.drawLine(0, (float) (i * sectionHeight),
-                        (float) width, (float) (i * sectionHeight), mPaint);
-            }
-        }
-    }*/
-
-
-
 }
