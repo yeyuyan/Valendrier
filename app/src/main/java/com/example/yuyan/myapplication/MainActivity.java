@@ -94,8 +94,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         button.setEnabled(false);
         thread = new Thread(new Runnable() {
             private int successful=2;
-            private String adress1="https://cas.univ-valenciennes.fr/cas/login?service=https://portail.univ-valenciennes.fr/Login";
-            private String adress2="https://vtmob.univ-valenciennes.fr/esup-vtclient-up4/stylesheets/desktop/welcome.xhtml";
+            private String adress1="https://cas.uphf.fr/cas/login?service=https://portail.uphf.fr/Login";
+            private String adress2="https://vtmob.uphf.fr/esup-vtclient-up4/stylesheets/desktop/welcome.xhtml";
 
             public Map sendPostLogin(String adress, String postParams)  throws Exception {
                 URL url=new URL(adress);
